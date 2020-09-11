@@ -24,10 +24,10 @@ object SharedPrefsRepository : DropRepository {
     }
 
     override fun clearDrop(drop: Drop) {
-
+        sharedPrefs().edit().remove(drop.id).apply()
     }
 
     override fun clearAllDrops() {
-
+        sharedPrefs().edit().clear().apply()
     }
 }
