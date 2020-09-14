@@ -1,6 +1,5 @@
 package com.raywenderlich.android.datadrop.model
 
-import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -33,9 +32,9 @@ object FileRepository : DropRepository {
 
     override fun getDrops(): List<Drop> {
         val drops = mutableListOf<Drop>()
-        
+
         try {
-            val fileList = getDirectory().list()
+            val fileList = dropsDirectory().list()
 
             fileList.map { convertStreamToString(dropInputStream(it)) }.mapTo(drops) {
                 gson.fromJson(it, Drop::class.java)
@@ -48,16 +47,28 @@ object FileRepository : DropRepository {
     }
 
     override fun clearDrop(drop: Drop) {
-        TODO("Not yet implemented")
+        dropFile(dropFilename(drop)).delete()
     }
 
     override fun clearAllDrops() {
-        TODO("Not yet implemented")
+        try {
+            val fileList = dropsDirectory().list()
+            fileList.map { dropFile(it) }
+            dropsDirectory().delete()
+        }catch (e: IOException){
+            Log.e("FileRepository","Error clearing all drops")
+        }
     }
 
-    private fun getDirectory() = getContext().getDir("drops", Context.MODE_PRIVATE)
+    private fun dropsDirectory(): File {
+        val dropsDirectory = File(getContext().getExternalFilesDir(null), "drops")
+        if(!dropsDirectory.exists()) {
+            dropsDirectory.mkdir()
+        }
+        return dropsDirectory
+    }
 
-    private fun dropFile(filename: String) = File(getDirectory(), filename)
+    private fun dropFile(filename: String) = File(dropsDirectory(), filename)
 
     private fun dropFilename(drop: Drop) = drop.id + ".drop"
 
